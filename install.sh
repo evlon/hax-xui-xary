@@ -7,21 +7,28 @@ echo "net.core.default_qdisc=fq" >> /etc/sysctl.conf
 echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.conf
 sysctl -p
 
-#安装x-ui：
-bash <(curl -Ls https://raw.githubusercontent.com/vaxilu/x-ui/master/install.sh)
+#安装xray：
+# installed: /etc/systemd/system/xray.service
+# installed: /etc/systemd/system/xray@.service
 
-#安装nginx
-apt install nginx
+# installed: /usr/local/bin/xray
+# installed: /usr/local/etc/xray/*.json
+
+# installed: /usr/local/share/xray/geoip.dat
+# installed: /usr/local/share/xray/geosite.dat
+
+# installed: /var/log/xray/access.log
+# installed: /var/log/xray/error.log
+bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
+systemctl enable xray
+
+#安装 Caddy
+apt install -y debian-keyring debian-archive-keyring apt-transport-https -y
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
+apt update -y
+apt install caddy -y
+
 #添加配置
-cp -f ./etc/nginx.conf /etc/nginx/nginx.conf 
-
-#安装acme：
-curl https://get.acme.sh | sh
-#添加软链接：
-ln -s  /root/.acme.sh/acme.sh /usr/local/bin/acme.sh
-#切换CA机构： 
-acme.sh --set-default-ca --server letsencrypt
-#申请证书： 
-acme.sh  --issue -d 你的域名 -k ec-256 --webroot  /var/www/html
-#安装证书：
-acme.sh --install-cert -d 你的域名 --ecc --key-file  /etc/x-ui/server.key  --fullchain-file /etc/x-ui/server.crt --reloadcmd     "systemctl force-reload nginx"
+cp -f ./etc/Caddyfile /etc/caddy/Caddyfile
+cp -f ./etc/xary-config.json /usr/local/etc/xray/config.json

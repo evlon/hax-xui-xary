@@ -1,0 +1,24 @@
+:45492 {
+        tls liamgnc@gmail.com {
+             on_demand
+        }
+
+        encode gzip
+
+       @ws_vless {
+           path /vless
+           header Connection *Upgrade*
+           header Upgrade    websocket
+       }
+       handle /vless {
+            reverse_proxy http://localhost:1000
+       }
+      
+       handle {
+            reverse_proxy https://cdndb.github.io {
+                 header_up Host {upstream_hostport}
+                 header_up X-Forwarded-Host {host}
+            }
+        }
+
+}
